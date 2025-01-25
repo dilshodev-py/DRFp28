@@ -1,0 +1,7 @@
+module6-> DJANGO JINJA (backend + frontend)
+module7-> DJANGO JINJA (PROJECT)
+module8-> DJANGO API (5ta dars nazariy, 6 ta project)
+module9-> YARIMIGACHA | DJANGO+SERVER | YARIMI FAST API
+module10-> testing , ci/cd , microservice , database + django | fast api
+
+
