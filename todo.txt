@@ -1,0 +1,33 @@
+1) template
+2) view
+3) url
+4) model create
+5) make mig
+6) add data from admin panel
+7) url + static
+
+
+
+lesson-3:
+    1) 2 ta template ochasiz
+    2) 2 ta view ochasiz
+    3) 2 ta url yozasiz
+    4) href ni ko'rsatasiz
+
+
+    5) Toy model qurasiz : name , image , price
+    6) Admin panel orqali malumot qo'shib olasiz
+    6) toys listini chiqaradigan template va view yozasiz
+    7) toyslar uchun detail page , view yasisz
+
+
+[GET , POST] film/form
+
+films:
+    title
+    video
+    main_image
+    duration
+
+
+

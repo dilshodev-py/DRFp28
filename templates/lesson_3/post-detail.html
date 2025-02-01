@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <a href="{% url 'post-list' %}"><button>New Posts</button></a>
+    <img src="{{ post.image.url }}" alt="">
+    <h3>{{ post.title }}</h3>
+    <h4>{{ post.description }}</h4>
+    <h5>{{ post.created_at|date:'Y-m-d' }}</h5>
+</body>
+</html>
