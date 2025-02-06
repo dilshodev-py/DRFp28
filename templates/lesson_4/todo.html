@@ -105,7 +105,10 @@
         {% for todo in todos %}
             <li>
                 <h4>{{ todo.name }}</h4>
-                <a type="button" class="delete" href="{% url 'todo-delete' todo.pk %}">X</a>
+                <form action="{% url 'todo-delete' todo.pk %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit">X</button>
+                </form>
 {#                <button class="delete">X</button>#}
             </li>
         {% endfor %}
