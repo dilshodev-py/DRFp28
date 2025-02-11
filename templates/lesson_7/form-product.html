@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% if messages %}
+    {% for message in messages %}
+    	<h4>{{ message }}</h4>
+    {% endfor %}
+
+
+
+{% endif %}
+<form action="{% url 'product-form' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="image">
+    <br>
+    <input type="text" name="name">
+    <br>
+    <select name="size" id="">
+        <option value="xl">XL</option>
+        <option value="m">M</option>
+        <option value="m">ML</option>
+        <option value="l">L</option>
+        <option value="x">X</option>
+        <option value="s">S</option>
+        <option value="3xl">3XL</option>
+        <option value="4xl">4XL</option>
+        <option value="2xl">2XL</option>
+    </select>
+    <br>
+
+    <input type="number" name="price">
+    <br>
+    <input type="number" name="quantity">
+    <br>
+    <button type="submit">Save</button>
+</form>
+</body>
+</html>

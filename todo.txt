@@ -29,5 +29,11 @@ films:
     main_image
     duration
 
+-------------------------------------------
+login     phone_number , email
+register
+
+
+form
 
 

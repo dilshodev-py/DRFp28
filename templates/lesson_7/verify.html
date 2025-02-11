@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% if messages %}
+	{% for message in messages %}
+		<h4>{{ message }}</h4>
+	{% endfor %}
+
+{% endif %}
+<form action="{% url 'verify' %}" method="post">
+    {% csrf_token %}
+    <label for="">Elektron pochtaga code yuborildi ! Tastiqlang</label>
+    <input type="number" name="code" placeholder="Verify code">
+    <input type="text" hidden name="email" value="{{ email }}" >
+    <button type="submit"></button>
+</form>
+</body>
+</html>

@@ -61,6 +61,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'root.wsgi.application'
+AUTH_USER_MODEL = 'apps.User'
 
 DATABASES = {
     'default': {
@@ -124,3 +125,11 @@ LOGGING = {
         }
     }
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'absaitovdev@gmail.com'
+EMAIL_HOST_PASSWORD = 'vpatyehaerbziyya'
+EMAIL_PORT = 587
+EMAIL_USE_SSL = False

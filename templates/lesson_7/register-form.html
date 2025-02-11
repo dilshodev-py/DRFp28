@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% if messages %}
+    {% for message in messages %}
+    	<h4>{{ message }}</h4>
+    {% endfor %}
+
+
+{% endif %}
+<form action="{% url 'register' %}" method="post">
+    {% csrf_token %}
+    <input type="text" placeholder="Phone number" name="phone_number">
+    <br>
+    <input type="email" placeholder="Email address" name="email">
+    <br>
+    <input type="password" placeholder="Password" name="password">
+    <br>
+    <button type="submit">Save</button>
+    <a href=""><button type="button">Login</button></a>
+</form>
+</body>
+</html>

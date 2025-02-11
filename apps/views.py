@@ -1,22 +1,27 @@
 import json
+import random
+from datetime import timedelta
 from os.path import join
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.models import User
 from django.db.models import prefetch_related_objects, F
+from django.db.models.fields import return_None
 from django.db.models.functions import Upper
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
+from django.template.context_processors import request
 from django.urls import reverse_lazy
 from django.views import generic
-from django.views.generic import TemplateView, View, ListView, DeleteView, FormView
+from django.views.generic import TemplateView, View, ListView, DeleteView, FormView, UpdateView
 
-from apps.forms import TodoModelForm
-from apps.models import Product, Post, Todo , Category
-from root.settings import BASE_DIR
+from apps.forms import TodoModelForm, ProductModelForm, ProductForm, RegisterModelForm, VerifyForm, redis
+from apps.models import Product, Post, Todo, Category, User
+from apps.tasks import send_mail
+from root.settings import BASE_DIR, EMAIL_HOST, EMAIL_HOST_USER
+
 
 # generic.View
 # generic.ListView
@@ -153,15 +158,15 @@ class ArticleTemplateView(TemplateView):
 #     context = {"products" : products , "users" : users}
 #     return render(request , 'lesson_2/product-list.html', context)
 
-class ProductListView(ListView):
-    queryset = Product.objects.all()
-    template_name = 'lesson_2/product-list.html'
-    context_object_name = 'products'
-
-    def get_context_data(self, **kwargs):
-        data = super().get_context_data(**kwargs)
-        data['users'] = User.objects.all()
-        return data
+# class ProductListView(ListView):
+#     queryset = Product.objects.all()
+#     template_name = 'lesson_2/product-list.html'
+#     context_object_name = 'products'
+#
+#     def get_context_data(self, **kwargs):
+#         data = super().get_context_data(**kwargs)
+#         data['users'] = User.objects.all()
+#         return data
 
 
 def index1_template_view(request):
@@ -236,17 +241,65 @@ class TodoDeleteView(DeleteView):
 
 
 
-def register_view(request):
-    if request.method == "GET":
-        return render(request , 'auth/register.html')
-    if request.method == "POST":
-        data = dict(request.POST.items())
-        del data['csrfmiddlewaretoken']
-        data['password'] = make_password(data.get('password'))
-        user = User.objects.filter(username=data.get('username'))
-        if not user.exists():
-            User.objects.create(**data)
-        return render(request , 'auth/register.html')
+# def register_view(request):
+#     if request.method == "GET":
+#         return render(request , 'auth/register.html')
+#     if request.method == "POST":
+#         data = dict(request.POST.items())
+#         del data['csrfmiddlewaretoken']
+#         data['password'] = make_password(data.get('password'))
+#         user = User.objects.filter(username=data.get('username'))
+#         if not user.exists():
+#             User.objects.create(**data)
+#         return render(request , 'auth/register.html')
+
+class RegisterFormView(FormView):
+    form_class = RegisterModelForm
+    template_name = 'lesson_7/register-form.html'
+    success_url = reverse_lazy('verify')
+
+    def form_valid(self, form):
+        email=  form.cleaned_data.get('email')
+        form.save()
+        r_code = random.randrange(10**5 , 10**6)
+        redis.set(email , r_code)
+        redis.expire(email , time=timedelta(minutes=2))
+        send_mail(email , r_code)
+        response =  HttpResponseRedirect(self.get_success_url())
+        response.set_cookie('email' , email)
+        return response
+
+
+    def form_invalid(self, form):
+        for error in form.errors.values():
+            messages.error(self.request, error)
+        return super().form_invalid(form)
+
+
+class VerifyCodeView(FormView):
+    form_class = VerifyForm
+    template_name = 'lesson_7/verify.html'
+    success_url = reverse_lazy('login')
+
+    def form_valid(self, form):
+        code = form.cleaned_data.get('code')
+        email = self.request.COOKIES.get('email')
+        verify_code = redis.get(email)
+        if not verify_code:
+            messages.error(self.request, "Codni mudati o'tgan")
+            return self.form_invalid(form)
+        if str(verify_code) != str(code):
+            messages.error(self.request, 'Code not match !')
+            return self.form_invalid(form)
+        redis.delete(email)
+        form.update(email)
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        for error in form.errors.values():
+            messages.error(self.request, error)
+        return super().form_invalid(form)
+
 
 def login_view(request):
     if request.method == "GET":
@@ -308,7 +361,7 @@ def logout_view(request):
 # Product.objects.all().values('name' , 'category__name')
 
 
-Product.objects.all().values('category' , 'name')
+# Product.objects.all().values('category' , 'name')
 
 
 # Category.objects.filter(pk=1).delete()
@@ -348,5 +401,37 @@ Product.objects.all().values('category' , 'name')
 
 # obj , is_update = Category.objects.update_or_create(pk=1,defaults={"name":"C20"})
 
+
+class ProductListView(ListView):
+    queryset = Product.objects.all()
+    template_name = 'lesson_5/product-list.html'
+    context_object_name = 'products'
+
+
+class ProductUpdateView(UpdateView):
+    queryset = Product.objects.all()
+    success_url = reverse_lazy('product-list')
+    form_class = ProductModelForm
+    pk_url_kwarg = 'pk'
+
+class ProductDeleteView(DeleteView):
+    queryset = Product.objects.all()
+    success_url = reverse_lazy('product-list')
+    pk_url_kwarg = 'pk'
+
+
+class ProductFormView(FormView):
+    form_class = ProductModelForm
+    template_name = 'lesson_7/form-product.html'
+    success_url = reverse_lazy('product-form')
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        message = "\n".join([i[0] for i in form.errors.values()])
+        messages.error(self.request , message)
+        return super().form_invalid(form)
 
 
